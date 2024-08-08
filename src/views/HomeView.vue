@@ -4,10 +4,9 @@
       <div class="box">
         <div class="func_desc">
           <i class="el-icon-microphone"></i>
-          Speech Recognition Results
         </div>
         <div v-if="!currentText" style="color: gray">No Content</div>
-        <div class="asr_content">{{ currentText }}</div>
+        <textarea :disabled="!copilot_started" class="asr_content" v-model="currentText"></textarea>
         <div class="single_part_bottom_bar">
           <el-button icon="el-icon-delete" :disabled="!currentText" @click="clearASRContent">
             Clear Text
@@ -17,13 +16,12 @@
       <div class="box" style="border-left: none;">
         <div class="func_desc">
           <i class="el-icon-s-custom"></i>
-          GPT Answer
         </div>
         <LoadingIcon v-show="show_ai_thinking_effect"/>
         <div class="ai_result_content">{{ ai_result }}</div>
         <div class="single_part_bottom_bar">
           <el-button icon="el-icon-thumb" @click="askCurrentText" :disabled="!isGetGPTAnswerAvailable">
-            Ask GPT
+            Send
           </el-button>
         </div>
       </div>
@@ -51,7 +49,6 @@ import MyTimer from "@/components/MyTimer.vue";
 import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk";
 import OpenAI from "openai";
 import config_util from "../utils/config_util"
-
 export default {
   name: 'HomeView',
   props: {},
@@ -71,7 +68,8 @@ export default {
       currentText: "",
       state: "end", //end\ing
       ai_result: null,
-      copilot_starting: false, //显示loading
+      copilot_starting: false,
+      copilot_started: false,
       copilot_stopping: false,
       show_ai_thinking_effect: false,
       popStyle: {},
@@ -87,7 +85,7 @@ export default {
   },
   methods: {
     async askCurrentText() {
-      const apiKey = localStorage.getItem("openai_key")
+      const apiKey = config_util.OpenAI_Api_Key
       let content = this.currentText
       this.ai_result = ""
       this.show_ai_thinking_effect = true
@@ -100,14 +98,13 @@ export default {
           throw new Error("You should setup an Open AI Key!")
         }
 
-        const openai = new OpenAI({apiKey: apiKey, dangerouslyAllowBrowser: true})
+        const openai = new OpenAI({ apiKey: apiKey, dangerouslyAllowBrowser: true})
         const stream = await openai.chat.completions.create({
           model: model,
-          messages: [{role: "user", content: content}],
+          messages: [{role: "user", content: "Ruby: " + content }],
           stream: true,
         });
         this.show_ai_thinking_effect = false
-
         for await (const chunk of stream) {
           const text = chunk.choices[0]?.delta?.content || ""
           this.ai_result += text
@@ -122,10 +119,11 @@ export default {
     },
     async startCopilot() {
       this.copilot_starting = true
-      const token = localStorage.getItem("azure_token")
+      this.copilot_started = true
+      const token =  config_util.Azure_Token
       const region = config_util.azure_region()
       const language = config_util.azure_language()
-      const openai_key = localStorage.getItem("openai_key")
+      const openai_key =  config_util.OpenAI_Api_Key
       console.log({region, language})
       try {
         if (!openai_key) {
@@ -176,6 +174,7 @@ export default {
     },
     userStopCopilot() {
       this.copilot_stopping = true
+      this.copilot_started = false
       this.recognizer.stopContinuousRecognitionAsync(() => {
         console.log("stoped")
         this.copilot_stopping = false

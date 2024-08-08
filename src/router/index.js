@@ -10,10 +10,6 @@ const routes = [
         name: 'home',
         component: HomeView
     },
-    {
-        path: '/setting',
-        component: () => import(/* webpackChunkName: "about" */ '../views/Setting.vue')
-    },
 ]
 
 const router = new VueRouter({
