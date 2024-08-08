@@ -38,12 +38,10 @@
       </el-button>
       <MyTimer ref="MyTimer"/>
     </div>
-
   </div>
 </template>
 
 <script>
-import Assert from "assert-js"
 import LoadingIcon from "@/components/LoadingIcon.vue";
 import MyTimer from "@/components/MyTimer.vue";
 import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk";
@@ -66,7 +64,7 @@ export default {
   data() {
     return {
       currentText: "",
-      state: "end", //end\ing
+      state: "end",
       ai_result: null,
       copilot_starting: false,
       copilot_started: false,
@@ -101,7 +99,7 @@ export default {
         const openai = new OpenAI({ apiKey: apiKey, dangerouslyAllowBrowser: true})
         const stream = await openai.chat.completions.create({
           model: model,
-          messages: [{role: "user", content: "Ruby: " + content }],
+          messages: [{role: "user", content: "Use Ruby language, add Big O, add comments explain how the solution works: " + content }],
           stream: true,
         });
         this.show_ai_thinking_effect = false

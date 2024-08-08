@@ -20,7 +20,6 @@ export default {
     start() {
       this.start_time = new Date().getTime()
       this.cur_interval_pointer = setInterval(() => {
-        //更新内容
         const time_last_seconds = parseInt((new Date().getTime() - this.start_time) / 1000)
         this.show_text = formatTime(time_last_seconds)
       }, 1000)
